@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Camcookie AI Test</title>
+  </head>
+  <body>
+    <h1>Camcookie AI — Basic Test</h1>
+
+    <p id="status">Loading model…</p>
+
+    <textarea id="input" rows="4" cols="50" placeholder="Type something..."></textarea>
+    <br />
+    <button id="run">Generate</button>
+
+    <h3>Output:</h3>
+    <pre id="output"></pre>
+
+    <!-- Transformers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
+
+    <script>
+      let pipe;
+
+      async function loadModel() {
+        const status = document.getElementById("status");
+        status.textContent = "Loading model… please wait";
+
+        try {
+          pipe = await window.transformers.pipeline(
+            "text-generation",
+            "Xenova/distilgpt2"
+          );
+          status.textContent = "Model loaded!";
+        } catch (err) {
+          status.textContent = "Error loading model: " + err;
+          console.error(err);
+        }
+      }
+
+      async function runGeneration() {
+        const input = document.getElementById("input").value;
+        const output = document.getElementById("output");
+
+        if (!pipe) {
+          output.textContent = "Model not ready yet.";
+          return;
+        }
+
+        output.textContent = "Generating…";
+
+        try {
+          const result = await pipe(input, {
+            max_new_tokens: 60,
+            temperature: 0.9,
+          });
+
+          output.textContent = result[0].generated_text;
+        } catch (err) {
+          output.textContent = "Error: " + err;
+          console.error(err);
+        }
+      }
+
+      document.getElementById("run").onclick = runGeneration;
+
+      loadModel();
+    </script>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"e3c1c9af36de41759418005494a48906","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
