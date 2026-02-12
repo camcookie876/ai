@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Camcookie AI</title>
+    <title>Camcookie AI (Hugging Face)</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -41,7 +41,7 @@
     </style>
   </head>
   <body>
-    <h1>Camcookie AI - TEST</h1>
+    <h1>Camcookie AI (Hugging Face)</h1>
 
     <textarea id="input" placeholder="Ask Camcookie AI anything..."></textarea>
     <br />
@@ -50,10 +50,11 @@
     <pre id="output"></pre>
 
     <script>
-      // 🔹 Replace these with your real keys (DO NOT paste them here in chat)
       const FUNCTION_URL = "https://mzzpwrtcusgbtwtnjfhv.supabase.co/functions/v1/Camcookie-AI";
+
+      // Fill these in privately
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enB3cnRjdXNnYnR3dG5qZmh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1NjUsImV4cCI6MjA4NjQ4NjU2NX0.ejIxfKu_l2idfdkC6_cNzWpJ5jpEo3n5YkFo8iZhPcs";
-      const OPENAI_KEY = "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";
+      const HF_KEY = "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";
 
       async function runAI() {
         const message = document.getElementById("input").value;
@@ -68,16 +69,17 @@
               "Content-Type": "application/json",
               "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
               "apikey": SUPABASE_ANON_KEY,
-              "x-openai-key": OPENAI_KEY
+              "x-hf-key": HF_KEY
             },
             body: JSON.stringify({ message })
           });
 
           const data = await response.json();
 
-          output.textContent =
-            data.choices?.[0]?.message?.content ||
-            JSON.stringify(data, null, 2);
+          // Hugging Face returns an array with generated_text
+          const reply = data[0]?.generated_text || JSON.stringify(data, null, 2);
+
+          output.textContent = reply;
         } catch (err) {
           output.textContent = "Error: " + err;
         }
