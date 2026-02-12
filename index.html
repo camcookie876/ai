@@ -2,69 +2,45 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Camcookie AI Test</title>
+    <title>Camcookie AI — Puter.js Test</title>
   </head>
   <body>
-    <h1>Camcookie AI — Basic Test</h1>
-
-    <p id="status">Loading model…</p>
+    <h1>Camcookie AI — Puter.js Test</h1>
 
     <textarea id="input" rows="4" cols="50" placeholder="Type something..."></textarea>
     <br />
-    <button id="run">Generate</button>
+    <button id="run">Ask AI</button>
 
     <h3>Output:</h3>
     <pre id="output"></pre>
 
-    <!-- Correct browser build -->
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+    <!-- Puter.js -->
+    <script src="https://js.puter.com/v2/"></script>
 
     <script>
-      let pipe;
-
-      async function loadModel() {
-        const status = document.getElementById("status");
-        status.textContent = "Loading model… please wait";
-
-        try {
-          pipe = await window.transformers.pipeline(
-            "text-generation",
-            "Xenova/distilgpt2"
-          );
-          status.textContent = "Model loaded!";
-        } catch (err) {
-          status.textContent = "Error loading model: " + err;
-          console.error(err);
-        }
-      }
-
-      async function runGeneration() {
+      async function runAI() {
         const input = document.getElementById("input").value;
         const output = document.getElementById("output");
 
-        if (!pipe) {
-          output.textContent = "Model not ready yet.";
-          return;
-        }
-
-        output.textContent = "Generating…";
+        output.textContent = "Thinking…";
 
         try {
-          const result = await pipe(input, {
-            max_new_tokens: 60,
-            temperature: 0.9,
+          const response = await puter.ai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: "You are Camcookie AI, a friendly assistant." },
+              { role: "user", content: input }
+            ]
           });
 
-          output.textContent = result[0].generated_text;
+          output.textContent = response.choices[0].message.content;
         } catch (err) {
           output.textContent = "Error: " + err;
           console.error(err);
         }
       }
 
-      document.getElementById("run").onclick = runGeneration;
-
-      loadModel();
+      document.getElementById("run").onclick = runAI;
     </script>
   </body>
 </html>
