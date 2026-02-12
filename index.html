@@ -3,20 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <title>Camcookie AI</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #0d0d0d;
+        color: white;
+        padding: 20px;
+      }
+      textarea {
+        width: 100%;
+        max-width: 600px;
+        height: 120px;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background: #1a1a1a;
+        color: white;
+      }
+      button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background: #4ade80;
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      pre {
+        margin-top: 20px;
+        padding: 10px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        max-width: 600px;
+        white-space: pre-wrap;
+      }
+    </style>
   </head>
   <body>
     <h1>Camcookie AI</h1>
 
-    <textarea id="input" rows="4" cols="50" placeholder="Ask me anything..."></textarea>
+    <textarea id="input" placeholder="Ask Camcookie AI anything..."></textarea>
     <br />
-    <button id="run">Ask AI</button>
+    <button onclick="runAI()">Ask</button>
 
-    <h3>Output:</h3>
     <pre id="output"></pre>
 
     <script>
+      // 🔹 Replace these with your real keys (DO NOT paste them here in chat)
       const FUNCTION_URL = "https://mzzpwrtcusgbtwtnjfhv.supabase.co/functions/v1/Camcookie-AI";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enB3cnRjdXNnYnR3dG5qZmh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1NjUsImV4cCI6MjA4NjQ4NjU2NX0.ejIxfKu_l2idfdkC6_cNzWpJ5jpEo3n5YkFo8iZhPcs"; // your anon key
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enB3cnRjdXNnYnR3dG5qZmh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1NjUsImV4cCI6MjA4NjQ4NjU2NX0.ejIxfKu_l2idfdkC6_cNzWpJ5jpEo3n5YkFo8iZhPcs";
+      const OPENAI_KEY = "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";
 
       async function runAI() {
         const message = document.getElementById("input").value;
@@ -30,19 +67,21 @@
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-              "apikey": SUPABASE_ANON_KEY
+              "apikey": SUPABASE_ANON_KEY,
+              "x-openai-key": OPENAI_KEY
             },
             body: JSON.stringify({ message })
           });
 
           const data = await response.json();
-          output.textContent = data.choices?.[0]?.message?.content || JSON.stringify(data);
+
+          output.textContent =
+            data.choices?.[0]?.message?.content ||
+            JSON.stringify(data, null, 2);
         } catch (err) {
           output.textContent = "Error: " + err;
         }
       }
-
-      document.getElementById("run").onclick = runAI;
     </script>
   </body>
 </html>
