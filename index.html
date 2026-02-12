@@ -3,127 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <title>Camcookie AI</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #050816;
-        color: #f9fafb;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 24px;
-      }
-      h1 {
-        margin-bottom: 16px;
-      }
-      #input {
-        width: 100%;
-        max-width: 600px;
-        height: 120px;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #4b5563;
-        background: #020617;
-        color: #f9fafb;
-        resize: vertical;
-      }
-      #run {
-        margin-top: 10px;
-        padding: 8px 16px;
-        border-radius: 999px;
-        border: none;
-        background: #22c55e;
-        color: #022c22;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      #run:disabled {
-        opacity: 0.6;
-        cursor: default;
-      }
-      #output {
-        margin-top: 18px;
-        width: 100%;
-        max-width: 600px;
-        min-height: 120px;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #4b5563;
-        background: #020617;
-        white-space: pre-wrap;
-      }
-      #status {
-        margin-top: 8px;
-        font-size: 0.85rem;
-        color: #9ca3af;
-      }
-    </style>
   </head>
   <body>
     <h1>Camcookie AI</h1>
 
-    <textarea id="input" placeholder="Ask Camcookie AI anything..."></textarea>
-    <button id="run">Ask</button>
-    <div id="status"></div>
+    <textarea id="input" rows="4" cols="50" placeholder="Ask me anything..."></textarea>
+    <br />
+    <button id="run">Ask AI</button>
 
-    <h3>Answer</h3>
+    <h3>Output:</h3>
     <pre id="output"></pre>
 
     <script>
-      const FUNCTION_URL =
-        "https://mzzpwrtcusgbtwtnjfhv.supabase.co/functions/v1/camcookie-ai";
-
-      const inputEl = document.getElementById("input");
-      const runBtn = document.getElementById("run");
-      const outputEl = document.getElementById("output");
-      const statusEl = document.getElementById("status");
+      const FUNCTION_URL = "https://mzzpwrtcusgbtwtnjfhv.supabase.co/functions/v1/Camcookie-AI";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enB3cnRjdXNnYnR3dG5qZmh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1NjUsImV4cCI6MjA4NjQ4NjU2NX0.ejIxfKu_l2idfdkC6_cNzWpJ5jpEo3n5YkFo8iZhPcs"; // your anon key
 
       async function runAI() {
-        const message = inputEl.value.trim();
-        if (!message) {
-          outputEl.textContent = "Type something first.";
-          return;
-        }
+        const message = document.getElementById("input").value;
+        const output = document.getElementById("output");
 
-        runBtn.disabled = true;
-        statusEl.textContent = "Talking to Camcookie AI…";
-        outputEl.textContent = "";
+        output.textContent = "Thinking…";
 
         try {
-          const res = await fetch(FUNCTION_URL, {
+          const response = await fetch(FUNCTION_URL, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+              "apikey": SUPABASE_ANON_KEY
             },
             body: JSON.stringify({ message })
           });
 
-          if (!res.ok) {
-            const text = await res.text();
-            outputEl.textContent = "Error from function:\n" + text;
-            statusEl.textContent = "Error.";
-            runBtn.disabled = false;
-            return;
-          }
-
-          const data = await res.json();
-          const reply = data.choices?.[0]?.message?.content || "(No reply)";
-          outputEl.textContent = reply;
-          statusEl.textContent = "Done.";
+          const data = await response.json();
+          output.textContent = data.choices?.[0]?.message?.content || JSON.stringify(data);
         } catch (err) {
-          outputEl.textContent = "Network or JS error:\n" + err;
-          statusEl.textContent = "Error.";
-        } finally {
-          runBtn.disabled = false;
+          output.textContent = "Error: " + err;
         }
       }
 
-      runBtn.addEventListener("click", runAI);
-      inputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-          runAI();
-        }
-      });
+      document.getElementById("run").onclick = runAI;
     </script>
   </body>
 </html>
