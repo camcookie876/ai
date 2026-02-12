@@ -25,15 +25,12 @@
         output.textContent = "Thinking…";
 
         try {
-          const response = await puter.ai.chat.completions.create({
+          const response = await puter.ai.generate({
             model: "gpt-4o-mini",
-            messages: [
-              { role: "system", content: "You are Camcookie AI, a friendly assistant." },
-              { role: "user", content: input }
-            ]
+            prompt: input
           });
 
-          output.textContent = response.choices[0].message.content;
+          output.textContent = response.output_text;
         } catch (err) {
           output.textContent = "Error: " + err;
           console.error(err);
