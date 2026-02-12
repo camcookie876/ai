@@ -2,10 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Camcookie AI — Test Version</title>
+  <title>Camcookie AI — Guaranteed Test</title>
 </head>
 <body>
-  <h2>Camcookie AI — Local Test</h2>
+  <h2>Camcookie AI — Guaranteed Test Version</h2>
 
   <input id="input" placeholder="Type something..." style="width: 300px;">
   <button onclick="runAI()">Send</button>
@@ -23,16 +23,16 @@
 
       output.textContent = "Thinking…";
 
-      // Load the model once
+      // Load a tiny model that works everywhere
       if (!pipe) {
         pipe = await pipeline(
           "text-generation",
-          "Xenova/gpt2"   // small, loads fast, works everywhere
+          "Xenova/tiny-random-gpt2"   // <--- guaranteed to load
         );
       }
 
       const result = await pipe(input, {
-        max_new_tokens: 60
+        max_new_tokens: 40
       });
 
       output.textContent = result[0].generated_text;
