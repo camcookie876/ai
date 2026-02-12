@@ -1,89 +1,42 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Camcookie AI (Hugging Face)</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #0d0d0d;
-        color: white;
-        padding: 20px;
+<head>
+  <meta charset="UTF-8">
+  <title>Camcookie AI — Test Version</title>
+</head>
+<body>
+  <h2>Camcookie AI — Local Test</h2>
+
+  <input id="input" placeholder="Type something..." style="width: 300px;">
+  <button onclick="runAI()">Send</button>
+
+  <pre id="output" style="margin-top: 20px; white-space: pre-wrap;"></pre>
+
+  <script type="module">
+    import { pipeline } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0";
+
+    let pipe;
+
+    async function runAI() {
+      const input = document.getElementById("input").value;
+      const output = document.getElementById("output");
+
+      output.textContent = "Thinking…";
+
+      // Load the model once
+      if (!pipe) {
+        pipe = await pipeline(
+          "text-generation",
+          "Xenova/gpt2"   // small, loads fast, works everywhere
+        );
       }
-      textarea {
-        width: 100%;
-        max-width: 600px;
-        height: 120px;
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        background: #1a1a1a;
-        color: white;
-      }
-      button {
-        margin-top: 10px;
-        padding: 10px 20px;
-        border-radius: 8px;
-        border: none;
-        background: #4ade80;
-        color: black;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      pre {
-        margin-top: 20px;
-        padding: 10px;
-        background: #1a1a1a;
-        border-radius: 8px;
-        max-width: 600px;
-        white-space: pre-wrap;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Camcookie AI</h1>
 
-    <textarea id="input" placeholder="Ask Camcookie AI anything..."></textarea>
-    <br />
-    <button onclick="runAI()">Ask</button>
+      const result = await pipe(input, {
+        max_new_tokens: 60
+      });
 
-    <pre id="output"></pre>
-
-    <script>
-      const FUNCTION_URL = "https://mzzpwrtcusgbtwtnjfhv.supabase.co/functions/v1/Camcookie-AI";
-
-      // Fill these in privately
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16enB3cnRjdXNnYnR3dG5qZmh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1NjUsImV4cCI6MjA4NjQ4NjU2NX0.ejIxfKu_l2idfdkC6_cNzWpJ5jpEo3n5YkFo8iZhPcs";
-      const OPENROUTER_KEY = "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"
-
-      async function runAI() {
-        const message = document.getElementById("input").value;
-        const output = document.getElementById("output");
-
-        output.textContent = "Thinking…";
-
-        try {
-          const response = await fetch(FUNCTION_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-              "apikey": SUPABASE_ANON_KEY,
-              "x-openrouter-key": OPENROUTER_KEY
-            },
-            body: JSON.stringify({ message })
-          });
-
-          const data = await response.json();
-
-          // Hugging Face returns an array with generated_text
-          const reply = data[0]?.generated_text || JSON.stringify(data, null, 2);
-
-          output.textContent = reply;
-        } catch (err) {
-          output.textContent = "Error: " + err;
-        }
-      }
-    </script>
-  </body>
+      output.textContent = result[0].generated_text;
+    }
+  </script>
+</body>
 </html>
