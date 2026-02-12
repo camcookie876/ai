@@ -25,9 +25,11 @@
         output.textContent = "Thinking…";
 
         try {
-          const response = await puter.ai.generate({
+          const response = await puter.ai.run("chat", {
             model: "gpt-4o-mini",
-            prompt: input
+            messages: [
+              { role: "user", content: input }
+            ]
           });
 
           output.textContent = response.output_text;
