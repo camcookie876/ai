@@ -1,524 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Camcookie AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- © 2026 Camcookie. All rights reserved.
-       Unauthorized copying, modification, distribution, or use of this software is strictly prohibited. -->
-  <script>
-    const AI_NAME = "Camcookie AI";
-    const TEXT_MODEL = "llama3.2:latest";
-    const IMAGE_MODEL = "stable-diffusion:latest";
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Camcookie AI</title>
 
-    // Your Cloudflare Tunnel URL:
-    const API_BASE = "https://camcookie-connect-26-ai.trycloudflare.com";
-  </script>
-  <style>
-    :root {
-      --blue:#0099ff;
-      --blue-soft:#33b5ff;
-      --bg:#020617;
-    }
-    * { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin:0;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:radial-gradient(circle at top, #02101f 0, #00040a 45%, #000000 100%);
-      color:#e5e7eb;
-      height:100vh;
-      display:flex;
-      flex-direction:column;
-    }
-    .topbar {
-      height:56px;
-      border-bottom:1px solid rgba(0,153,255,0.35);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 18px;
-      background:linear-gradient(90deg, #001322, #002744, #001322);
-      box-shadow:0 0 18px rgba(0,153,255,0.35);
-      position:sticky;
-      top:0;
-      z-index:10;
-    }
-    .topbar-title {
-      font-weight:650;
-      font-size:18px;
-      letter-spacing:0.03em;
-      color:#f9fafb;
-    }
-    .topbar-pill {
-      font-size:12px;
-      padding:5px 12px;
-      border-radius:999px;
-      background:rgba(0,153,255,0.12);
-      color:#cbd5f5;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      border:1px solid rgba(0,153,255,0.5);
-    }
-    .status-dot {
-      width:9px;
-      height:9px;
-      border-radius:999px;
-      background:#22c55e;
-      box-shadow:0 0 10px rgba(34,197,94,0.9);
-    }
-    .status-dot.off {
-      background:#ef4444;
-      box-shadow:0 0 10px rgba(239,68,68,0.9);
-    }
+<style>
+  body {
+    margin: 0;
+    background: #0d1117;
+    font-family: system-ui, sans-serif;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
-    .main {
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      max-width:960px;
-      margin:0 auto;
-      width:100%;
-    }
+  header {
+    background: linear-gradient(90deg, #005eff, #00aaff);
+    padding: 16px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 122, 255, 0.6);
+  }
 
-    .chat-container {
-      flex:1;
-      overflow-y:auto;
-      padding:18px 16px 10px;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-      scroll-behavior:smooth;
-    }
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 
-    .msg-row {
-      display:flex;
-      width:100%;
-    }
-    .msg-row.user { justify-content:flex-end; }
-    .msg-row.ai { justify-content:flex-start; }
-    .msg-row.system { justify-content:center; }
+  .msg {
+    max-width: 80%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
 
-    .msg-user {
-      max-width:80%;
-      padding:10px 12px;
-      border-radius:16px;
-      font-size:15px;
-      line-height:1.5;
-      word-break:break-word;
-      background:linear-gradient(135deg, var(--blue), var(--blue-soft));
-      color:#f9fafb;
-      border-bottom-right-radius:4px;
-      box-shadow:0 8px 20px rgba(0,0,0,0.45);
-    }
+  .user {
+    align-self: flex-end;
+    background: #1f6feb;
+  }
 
-    /* AI: full-width panel, no bubble */
-    .msg-ai {
-      width:100%;
-      padding:14px 16px;
-      border-radius:14px;
-      font-size:15px;
-      line-height:1.6;
-      word-break:break-word;
-      background:rgba(3,16,32,0.95);
-      border:1px solid rgba(0,153,255,0.45);
-      box-shadow:0 10px 26px rgba(0,0,0,0.6);
-    }
+  .ai {
+    align-self: flex-start;
+    background: #161b22;
+    border: 1px solid #30363d;
+  }
 
-    .msg-system {
-      background:rgba(0,0,0,0.6);
-      color:#9ca3af;
-      font-size:13px;
-      border-radius:999px;
-      padding:8px 14px;
-      margin:0 auto;
-    }
+  #inputBar {
+    display: flex;
+    padding: 12px;
+    background: #0d1117;
+    border-top: 1px solid #30363d;
+  }
 
-    .msg-ai pre,
-    .msg-ai code {
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background:#020617;
-      padding:4px 6px;
-      border-radius:6px;
-      overflow-x:auto;
-    }
-    .msg-ai pre {
-      padding:8px;
-      border:1px solid rgba(0,153,255,0.35);
-    }
-    .msg-ai strong { font-weight:600; }
+  #msgInput {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #161b22;
+    color: white;
+    font-size: 16px;
+  }
 
-    .msg-ai img {
-      max-width:100%;
-      border-radius:12px;
-      margin-top:8px;
-      box-shadow:0 8px 20px rgba(0,0,0,0.6);
-    }
+  #sendBtn {
+    margin-left: 10px;
+    padding: 12px 20px;
+    background: #005eff;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-    .input-bar {
-      padding:12px 14px 14px;
-      border-top:1px solid rgba(0,153,255,0.35);
-      background:linear-gradient(180deg, #000814, #00040a);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .input-row {
-      display:flex;
-      gap:10px;
-      align-items:flex-end;
-    }
-    textarea {
-      flex:1;
-      resize:none;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid rgba(0,153,255,0.5);
-      background:rgba(0,0,0,0.7);
-      color:#e5e7eb;
-      font-size:15px;
-      min-height:60px;
-      max-height:160px;
-      box-shadow:0 0 0 1px rgba(0,0,0,0.6);
-    }
-    textarea:focus {
-      outline:none;
-      border-color:var(--blue);
-      box-shadow:0 0 0 1px var(--blue);
-    }
-
-    .btn {
-      border:none;
-      border-radius:14px;
-      padding:10px 18px;
-      font-size:15px;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      white-space:nowrap;
-      transition:background 0.15s, transform 0.1s, box-shadow 0.15s;
-    }
-    .btn-primary {
-      background:linear-gradient(135deg, var(--blue), var(--blue-soft));
-      color:#f9fafb;
-      box-shadow:0 8px 18px rgba(0,153,255,0.45);
-    }
-    .btn-primary:hover {
-      transform:translateY(-1px);
-      box-shadow:0 10px 22px rgba(0,153,255,0.6);
-    }
-    .btn-ghost {
-      background:rgba(0,0,0,0.6);
-      color:#e5e7eb;
-      border:1px solid rgba(0,153,255,0.5);
-    }
-    .btn-ghost:hover {
-      background:rgba(0,153,255,0.12);
-    }
-
-    @media (max-width:600px) {
-      .msg-user { max-width:90%; font-size:14px; }
-      .msg-ai { font-size:14px; }
-      .topbar-title { font-size:16px; }
-      .btn { padding:9px 14px; font-size:14px; }
-      textarea { font-size:14px; }
-    }
-  </style>
+  #sendBtn:hover {
+    background: #0077ff;
+  }
+</style>
 </head>
-<body>
-  <div class="topbar">
-    <div class="topbar-title" id="titleBar"></div>
-    <div class="topbar-pill">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="statusText">Checking...</span>
-    </div>
-  </div>
 
-  <div class="main">
-    <div class="chat-container" id="chat"></div>
-    <div class="input-bar">
-      <button class="btn btn-ghost" id="clearBtn">Clear Chat</button>
-      <div class="input-row">
-        <textarea id="prompt" placeholder="Ask, code, or request an image..."></textarea>
-        <button class="btn btn-primary" id="sendBtn">Send</button>
-      </div>
-    </div>
-  </div>
+<body>
+<header>Camcookie AI</header>
+
+<div id="chat"></div>
+
+<div id="inputBar">
+  <input id="msgInput" placeholder="Ask me anything..." />
+  <button id="sendBtn">Send</button>
+</div>
 
 <script>
-const chat = document.getElementById("chat");
-const promptBox = document.getElementById("prompt");
-const sendBtn = document.getElementById("sendBtn");
-const clearBtn = document.getElementById("clearBtn");
-const statusDot = document.getElementById("statusDot");
-const statusText = document.getElementById("statusText");
-document.getElementById("titleBar").textContent = AI_NAME;
+  // Replace this with your ngrok URL each time you run ai.sh
+  const API_BASE = "http://hydremic-idella-screwlike.ngrok-free.dev/";
 
-// Conversation memory (per browser)
-let history = [];
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("msgInput");
+  const sendBtn = document.getElementById("sendBtn");
 
-function apiUrl(path) {
-  return API_BASE + path;
-}
-
-function scrollToBottom() {
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function renderMarkdown(text) {
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/\n/g, '<br>');
-  return html;
-}
-
-function addUserMsg(text) {
-  const row = document.createElement("div");
-  row.className = "msg-row user";
-  const bubble = document.createElement("div");
-  bubble.className = "msg-user";
-  bubble.textContent = text;
-  row.appendChild(bubble);
-  chat.appendChild(row);
-  scrollToBottom();
-}
-
-function addSystemMsg(text) {
-  const row = document.createElement("div");
-  row.className = "msg-row system";
-  const bubble = document.createElement("div");
-  bubble.className = "msg-system";
-  bubble.textContent = text;
-  row.appendChild(bubble);
-  chat.appendChild(row);
-  scrollToBottom();
-  return row;
-}
-
-function createAiMsgElement() {
-  const row = document.createElement("div");
-  row.className = "msg-row ai";
-  const bubble = document.createElement("div");
-  bubble.className = "msg-ai";
-  bubble.innerHTML = "";
-  row.appendChild(bubble);
-  chat.appendChild(row);
-  scrollToBottom();
-  return bubble;
-}
-
-function addImageToAi(src) {
-  const row = document.createElement("div");
-  row.className = "msg-row ai";
-  const bubble = document.createElement("div");
-  bubble.className = "msg-ai";
-  const img = document.createElement("img");
-  if (src.startsWith("data:") || src.startsWith("http")) {
-    img.src = src;
-  } else {
-    img.src = "data:image/png;base64," + src;
-  }
-  bubble.appendChild(img);
-  row.appendChild(bubble);
-  chat.appendChild(row);
-  scrollToBottom();
-}
-
-async function checkStatus() {
-  try {
-    const r = await fetch(apiUrl("/api/tags"));
-    if (!r.ok) throw 0;
-    statusDot.classList.remove("off");
-    statusText.textContent = "Local Pi · Online";
-  } catch {
-    statusDot.classList.add("off");
-    statusText.textContent = "Offline";
-  }
-}
-checkStatus();
-setInterval(checkStatus, 5000);
-
-// Auto web-enrichment using crawler
-async function enrichWithWeb(prompt) {
-  let context = "";
-
-  try {
-    const lower = prompt.toLowerCase();
-
-    if (lower.includes("weather")) {
-      const r = await fetch(apiUrl("/crawl"), {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ url:"https://wttr.in/?format=3" })
-      });
-      const data = await r.json();
-      context += "Current weather info: " + data.content + "\n";
-    }
-
-    if (lower.includes("time") || lower.includes("clock")) {
-      const r = await fetch(apiUrl("/crawl"), {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ url:"http://worldtimeapi.org/api/ip" })
-      });
-      const data = await r.json();
-      context += "Current time data: " + data.content + "\n";
-    }
-
-    if (lower.includes("news") || lower.includes("headline")) {
-      const r = await fetch(apiUrl("/crawl"), {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ url:"https://news.ycombinator.com" })
-      });
-      const data = await r.json();
-      context += "Recent news page content: " + data.content + "\n";
-    }
-  } catch (e) {
-    context += "Note: Web enrichment failed, continue with local knowledge.\n";
+  function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = "msg " + sender;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
   }
 
-  return context;
-}
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
 
-async function sendMessage() {
-  const text = promptBox.value.trim();
-  if (!text) return;
+    addMessage(text, "user");
+    input.value = "";
 
-  addUserMsg(text);
-  promptBox.value = "";
+    const aiDiv = addMessage("...", "ai");
 
-  const thinking = addSystemMsg("Thinking...");
-
-  // Decide if this is an image request
-  const lower = text.toLowerCase();
-  const wantsImage =
-    lower.includes("image") ||
-    lower.includes("picture") ||
-    lower.includes("draw") ||
-    lower.includes("photo");
-
-  if (wantsImage) {
-    try {
-      const r = await fetch(apiUrl("/api/image"), {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-          model: IMAGE_MODEL,
-          prompt: text
-        })
-      });
-      const data = await r.json();
-      thinking.remove();
-      addImageToAi(data.image || data.image_base64 || "");
-      history.push({ role:"assistant", content:"[Generated image for: " + text + "]" });
-      return;
-    } catch (e) {
-      thinking.remove();
-      addSystemMsg("Error generating image.");
-      return;
-    }
-  }
-
-  // Text chat with memory + web enrichment
-  try {
-    const webContext = await enrichWithWeb(text);
-    if (webContext) {
-      history.push({
-        role:"system",
-        content:"Use this fresh web info if helpful:\n" + webContext
-      });
-    }
-
-    history.push({ role:"user", content:text });
-
-    const aiBubble = createAiMsgElement();
-    let aiText = "";
-
-    const r = await fetch(apiUrl("/api/chat"), {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        model: TEXT_MODEL,
-        stream: true,
-        messages: history
+    const response = await fetch(`${API_BASE}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama3.2",
+        messages: [{ role: "user", content: text }],
+        stream: true
       })
     });
 
-    thinking.remove();
-
-    const reader = r.body.getReader();
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = "";
+
+    let fullText = "";
 
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream:true });
-      buffer += chunk;
 
-      const lines = buffer.split("\n");
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const obj = JSON.parse(line);
-          if (obj.message && obj.message.content) {
-            aiText += obj.message.content;
-            aiBubble.innerHTML = renderMarkdown(aiText);
-            scrollToBottom();
-          }
-        } catch (e) {
-          // ignore parse errors
-        }
-      }
+      const chunk = decoder.decode(value);
+      fullText += chunk;
+      aiDiv.textContent = fullText;
+      chat.scrollTop = chat.scrollHeight;
     }
-
-    if (buffer.trim()) {
-      try {
-        const obj = JSON.parse(buffer.trim());
-        if (obj.message && obj.message.content) {
-          aiText += obj.message.content;
-        }
-      } catch (e) {}
-    }
-
-    if (!aiText) {
-      aiText = "[No response received]";
-      aiBubble.textContent = aiText;
-    } else {
-      aiBubble.innerHTML = renderMarkdown(aiText);
-    }
-
-    history.push({ role:"assistant", content:aiText });
-
-  } catch (err) {
-    thinking.remove();
-    addSystemMsg("Error contacting AI.");
   }
-}
 
-sendBtn.onclick = sendMessage;
-promptBox.onkeydown = e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-};
-clearBtn.onclick = () => {
-  chat.innerHTML = "";
-  history = [];
-  addSystemMsg("Chat cleared. Memory reset for this browser.");
-};
+  sendBtn.onclick = sendMessage;
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") sendMessage();
+  };
 </script>
-
 </body>
 </html>
