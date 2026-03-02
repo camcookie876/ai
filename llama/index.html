@@ -389,7 +389,6 @@
         }
 
         const data = await res.json();
-        // Ollama chat format: { message: { role, content }, ... }
         const reply =
           data?.message?.content ||
           data?.choices?.[0]?.message?.content ||
@@ -399,7 +398,7 @@
       } catch (err) {
         messagesEl.removeChild(typingRow);
         setError("Network error talking to tunnel.");
-        appendBubble("ai", "I couldn’t reach the Pi tunnel. Check ngrok + Wi‑Fi.");
+        appendBubble("ai", "I couldn’t reach the Pi tunnel. Check LocalTunnel + Wi‑Fi.");
       } finally {
         sendBtn.disabled = false;
         messagesEl.scrollTop = messagesEl.scrollHeight;
