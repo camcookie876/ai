@@ -284,137 +284,147 @@
   </div>
 
   <script>
-    // LIVE URL
-    const API_BASE = "https://curvy-carrots-fetch.loca.lt";
+// LIVE URL
+const API_BASE = "https://curvy-carrots-fetch.loca.lt";
 
-    const messagesEl = document.getElementById("messages");
-    const inputEl = document.getElementById("input");
-    const sendBtn = document.getElementById("send");
-    const errorEl = document.getElementById("error");
-    const statusDot = document.getElementById("status-dot");
-    const statusText = document.getElementById("status-text");
-    const statusPill = document.getElementById("status-pill");
+// LocalTunnel requires this header for ALL requests
+const LT_HEADER = { "x-lt-token": "camcookie" };
 
-    function appendBubble(role, text) {
-      const row = document.createElement("div");
-      row.className = "bubble-row " + role;
+const messagesEl = document.getElementById("messages");
+const inputEl = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const errorEl = document.getElementById("error");
+const statusDot = document.getElementById("status-dot");
+const statusText = document.getElementById("status-text");
+const statusPill = document.getElementById("status-pill");
 
-      const bubble = document.createElement("div");
-      bubble.className = "bubble " + (role === "user" ? "user" : "ai");
-      bubble.textContent = text;
+function appendBubble(role, text) {
+  const row = document.createElement("div");
+  row.className = "bubble-row " + role;
 
-      row.appendChild(bubble);
-      messagesEl.appendChild(row);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      return bubble;
-    }
+  const bubble = document.createElement("div");
+  bubble.className = "bubble " + (role === "user" ? "user" : "ai");
+  bubble.textContent = text;
 
-    function appendTyping() {
-      const row = document.createElement("div");
-      row.className = "bubble-row ai";
+  row.appendChild(bubble);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return bubble;
+}
 
-      const bubble = document.createElement("div");
-      bubble.className = "bubble ai";
+function appendTyping() {
+  const row = document.createElement("div");
+  row.className = "bubble-row ai";
 
-      const typing = document.createElement("div");
-      typing.className = "typing";
-      for (let i = 0; i < 3; i++) {
-        const dot = document.createElement("div");
-        dot.className = "typing-dot";
-        typing.appendChild(dot);
-      }
-      bubble.appendChild(typing);
-      row.appendChild(bubble);
-      messagesEl.appendChild(row);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      return row;
-    }
+  const bubble = document.createElement("div");
+  bubble.className = "bubble ai";
 
-    function setError(msg) {
-      if (!msg) {
-        errorEl.style.display = "none";
-        errorEl.textContent = "";
-      } else {
-        errorEl.style.display = "block";
-        errorEl.textContent = msg;
-      }
-    }
+  const typing = document.createElement("div");
+  typing.className = "typing";
+  for (let i = 0; i < 3; i++) {
+    const dot = document.createElement("div");
+    dot.className = "typing-dot";
+    typing.appendChild(dot);
+  }
+  bubble.appendChild(typing);
+  row.appendChild(bubble);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return row;
+}
 
-    async function checkStatus() {
-      try {
-        const res = await fetch(`${API_BASE}/status`, { method: "GET" });
-        if (res.ok) {
-          statusDot.classList.remove("offline");
-          statusText.textContent = "Online";
-          statusPill.title = "Pi + nginx + Ollama reachable";
-        } else {
-          statusDot.classList.add("offline");
-          statusText.textContent = "Error";
-          statusPill.title = "Status endpoint returned " + res.status;
-        }
-      } catch (e) {
-        statusDot.classList.add("offline");
-        statusText.textContent = "Offline";
-        statusPill.title = "Could not reach tunnel";
-      }
-    }
+function setError(msg) {
+  if (!msg) {
+    errorEl.style.display = "none";
+    errorEl.textContent = "";
+  } else {
+    errorEl.style.display = "block";
+    errorEl.textContent = msg;
+  }
+}
 
-    async function sendMessage() {
-      const text = inputEl.value.trim();
-      if (!text) return;
-
-      setError("");
-      inputEl.value = "";
-      sendBtn.disabled = true;
-
-      appendBubble("user", text);
-      const typingRow = appendTyping();
-
-      try {
-        const res = await fetch(`${API_BASE}/api/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "llama3.2",
-            messages: [{ role: "user", content: text }]
-          })
-        });
-
-        messagesEl.removeChild(typingRow);
-
-        if (!res.ok) {
-          setError(`Backend error: ${res.status}`);
-          appendBubble("ai", "Hmm, I hit an error talking to the Pi backend.");
-          return;
-        }
-
-        const data = await res.json();
-        const reply =
-          data?.message?.content ||
-          data?.choices?.[0]?.message?.content ||
-          JSON.stringify(data);
-
-        appendBubble("ai", reply);
-      } catch (err) {
-        messagesEl.removeChild(typingRow);
-        setError("Network error talking to tunnel.");
-        appendBubble("ai", "I couldn’t reach the Pi tunnel. Check LocalTunnel + Wi‑Fi.");
-      } finally {
-        sendBtn.disabled = false;
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      }
-    }
-
-    sendBtn.addEventListener("click", sendMessage);
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+async function checkStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/status`, {
+      method: "GET",
+      headers: LT_HEADER
     });
 
-    checkStatus();
-    setInterval(checkStatus, 15000);
+    if (res.ok) {
+      statusDot.classList.remove("offline");
+      statusText.textContent = "Online";
+      statusPill.title = "Pi + nginx + Ollama reachable";
+    } else {
+      statusDot.classList.add("offline");
+      statusText.textContent = "Error";
+      statusPill.title = "Status endpoint returned " + res.status;
+    }
+  } catch (e) {
+    statusDot.classList.add("offline");
+    statusText.textContent = "Offline";
+    statusPill.title = "Could not reach tunnel";
+  }
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  setError("");
+  inputEl.value = "";
+  sendBtn.disabled = true;
+
+  appendBubble("user", text);
+  const typingRow = appendTyping();
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...LT_HEADER
+      },
+      body: JSON.stringify({
+        model: "llama3.2",
+        messages: [{ role: "user", content: text }]
+      })
+    });
+
+    messagesEl.removeChild(typingRow);
+
+    if (!res.ok) {
+      setError(`Backend error: ${res.status}`);
+      appendBubble("ai", "Hmm, I hit an error talking to the Pi backend.");
+      return;
+    }
+
+    const data = await res.json();
+    const reply =
+      data?.message?.content ||
+      data?.choices?.[0]?.message?.content ||
+      JSON.stringify(data);
+
+    appendBubble("ai", reply);
+  } catch (err) {
+    messagesEl.removeChild(typingRow);
+    setError("Network error talking to tunnel.");
+    appendBubble("ai", "I couldn’t reach the Pi tunnel. Check LocalTunnel + Wi‑Fi.");
+  } finally {
+    sendBtn.disabled = false;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+}
+
+sendBtn.addEventListener("click", sendMessage);
+inputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+checkStatus();
+setInterval(checkStatus, 15000);
   </script>
 </body>
 </html>
